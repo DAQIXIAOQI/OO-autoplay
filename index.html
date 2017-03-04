@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>自动轮播面对对象</title>
+
+<head>
+    <style>
+        div,
+        li,
+        ul,
+        img {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        body {
+            background-color: black;
+        }
+        
+        div#container,
+        div#container1,
+        div#container2 {
+            position: relative;
+            width: 500px;
+            height: 200px;
+            margin: 20px auto;
+            border: 10px solid white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        ul.imgul {
+            width: 500px;
+            height: 1000px;
+            list-style-type: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        div#container1 ul.imgul {
+            height: 200px;
+        }
+        
+        div#container2 ul.imgul {
+            width: 2500px;
+            height: 200px;
+        }
+        
+        div#container2 ul.imgul li {
+            float: left;
+        }
+        
+        ul.imgul li {
+            width: 500px;
+            height: 200px;
+        }
+        
+        div#container1 ul.imgul li {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            filter: alpha(opacity: 0);
+            opacity: 0;
+        }
+        
+        ul.numul {
+            position: absolute;
+            right: 0px;
+            bottom: 0px;
+            list-style-type: none;
+        }
+        
+        ul.numul li {
+            text-align: center;
+            line-height: 20px;
+            float: left;
+            width: 20px;
+            height: 20px;
+            background-color: #F90;
+            margin: 5px;
+            border-radius: 100%;
+            filter: alpha(opacity: 30);
+            opacity: .3;
+            color: white;
+            font-weight: bold;
+            font-size: 80%;
+        }
+        
+        ul.numul li.current {
+            filter: alpha(opacity: 80);
+            opacity: .8;
+            color: black;
+            font-size: 100%;
+        }
+
+    </style>
+    <script src="mylibrary.js" type="text/javascript"></script>
+    <script>
+        var autoplay = function(id) {
+            this.ocontainer = document.getElementById(id);
+            this.play();
+        }
+        autoplay.prototype = {
+            play: function(id) {
+                this.imgul = this.ocontainer.getElementsByTagName("ul")[0];
+                this.imgulli = this.imgul.getElementsByTagName("li");
+                this.numul = this.ocontainer.getElementsByTagName("ul")[1];
+                this.numulli = this.numul.getElementsByTagName("li");
+                this.num = 0;
+                this.direct = true;
+                var OThis = this;
+                this.autotimer = setInterval(function() {
+                    OThis.next();
+                }, 2000);
+                this.ocontainer.onmouseover = function(event) {
+                    (event || window.event).cancelBubble = true;
+                    clearInterval(OThis.autotimer);
+                };
+                this.ocontainer.onmouseout = function() {
+                    OThis.autotimer = setInterval(function() {
+                        OThis.next();
+                    }, 2000);
+                };
+                for (var i = 0; i < this.numulli.length; i++) {
+                    this.numulli[i].index = i;
+                    this.numulli[i].onmouseover = function() {
+                        OThis.num = this.index;
+                        (OThis.num == 0 && OThis.direct == false) ? OThis.direct = true: " ";
+                        ((OThis.num == OThis.numulli.length - 1) && OThis.direct == true) ? OThis.direct = false: " ";
+                        OThis.toggle();
+                    }
+                }
+            },
+            next: function() {
+                if (this.direct == true) {
+                    this.num = this.num + 1;
+                    if (this.num == this.numulli.length - 1) {
+                        this.direct = false;
+                    }
+                } else {
+                    this.num = this.num - 1;
+                    if (this.num == 0) {
+                        this.direct = true;
+                    }
+                }
+                this.toggle();
+            },
+            toggle: function() {
+                for (var i = 0; i < this.numulli.length; i++) {
+                    this.numulli[i].className = "";
+                }
+                this.numulli[this.num].className = "current";
+                this.domove(this.num * this.imgulli[0].offsetHeight);
+            },
+            domove: function(iTarget) {
+                move(this.imgul, {
+                    top: -iTarget
+                });
+            }
+        }
+
+        var autoplay1 = function(id) {
+                this.ocontainer = document.getElementById(id);
+                this.play();
+                this.begin();
+            }
+            //拷贝第一个轮播的代码
+        for (var i in autoplay.prototype) {
+            autoplay1.prototype[i] = autoplay.prototype[i]
+        }
+        //渐变效果代码
+        autoplay1.prototype.toggle = function() {
+            for (var i = 0; i < this.numulli.length; i++) {
+                move(this.numulli[i], {
+                    opacity: 40
+                });
+                move(this.imgulli[i], {
+                    opacity: 0
+                })
+            }
+            move(this.numulli[this.num], {
+                opacity: 90
+            });
+            move(this.imgulli[this.num], {
+                    opacity: 100
+                })
+                //this.domove();
+        };
+        autoplay1.prototype.begin = function() {
+            this.imgulli[0].style.filter = "alpha(opacity:100)";
+            this.numulli[0].style.filter = "alpha(opacity:90)";
+            this.imgulli[0].style.opacity = 1;
+            this.numulli[0].style.opacity = 0.9;
+
+        }
+
+        var autoplay2 = function(id) {
+            this.ocontainer = document.getElementById(id);
+            this.play();
+        }
+
+        for (var i in autoplay1.prototype) {
+            autoplay2.prototype[i] = autoplay1.prototype[i];
+        }
+
+        autoplay2.prototype.toggle = function() {
+            for (var i = 0; i < this.numulli.length; i++) {
+                this.numulli[i].className = " ";
+            }
+            this.numulli[this.num].className = "current";
+            var dis = (this.num*this.imgulli[0].offsetWidth);
+            this.domove(dis);
+        }
+        autoplay2.prototype.domove = function(a) {
+            move(this.imgul,{left:-a});
+        }
+
+        window.onload = function() {
+            new autoplay("container");
+            new autoplay1("container1");
+            new autoplay2("container2");
+        }
+
+    </script>
+</head>
+
+<body>
+    <div id="container2">
+        <ul class="imgul">
+            <li><img src="image/02.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/03.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/04.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/05.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/06.jpg" width="500px" height="200px" /></li>
+        </ul>
+        <ul class="numul">
+            <li class="current">1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+
+    <div id="container">
+        <ul class="imgul">
+            <li><img src="image/02.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/03.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/04.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/05.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/06.jpg" width="500px" height="200px" /></li>
+
+        </ul>
+        <ul class="numul">
+            <li class="current">1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+
+    <div id="container1">
+        <ul class="imgul">
+            <li><img src="image/02.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/03.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/04.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/05.jpg" width="500px" height="200px" /></li>
+            <li><img src="image/06.jpg" width="500px" height="200px" /></li>
+        </ul>
+        <ul class="numul">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+
+</body>
+
+</html>
